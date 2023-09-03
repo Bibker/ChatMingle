@@ -1,0 +1,22 @@
+{
+  "name": "chatmingle",
+  "version": "1.0.0",
+  "description": "Chat App Built Using MERN, Socket.Io",
+  "main": "server.js",
+  "scripts": {
+    "start":"node backend/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bibker/ChatMingle.git"
+  },
+  "author": "Bibek Bhusal",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Bibker/ChatMingle/issues"
+  },
+  "homepage": "https://github.com/Bibker/ChatMingle#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
