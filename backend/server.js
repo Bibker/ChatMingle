@@ -1,8 +1,13 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const chats = require("./data/dummyData");
+const connectDB = require("./config/db");
+const colors = require('colors');
+
 const app= express();
-dotenv.config()
+
+dotenv.config();
+connectDB();
 
 app.get("/", (req,res)=> {
     res.send("API is Running");
@@ -23,5 +28,5 @@ app.get("/api/chats",(req,res)=> {
  
 app.listen(
     PORT, 
-    console.log(`App is running on Port ${PORT}`)
+    console.log(`App is running on Port ${PORT}`.yellow.bold)
     );
