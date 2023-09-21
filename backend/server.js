@@ -5,6 +5,7 @@ const chats = require("./data/dummyData");
 const connectDB = require("./config/db");
 const colors = require('colors');
 const userRoutes = require('./routes/userRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 
 const app = express();
@@ -19,7 +20,9 @@ app.get("/", (req, res) => {
     res.send("API is Running");
 })
 
-app.use('/api/user', userRoutes)
+app.use('/api/user', userRoutes);
+app.use('/api/chat', chatRoutes);
+
 app.use(notFound);
 app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
