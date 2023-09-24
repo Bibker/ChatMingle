@@ -125,7 +125,7 @@ const renameGroupChat = asyncHandler(async(req,res)=> {
 const addToGroup= asyncHandler(async(req,res)=> {
     const {chatId, userId} =req.body;
 
-    const added = Chat.findByIdAndUpdate(chatId, {
+    const added = await Chat.findByIdAndUpdate(chatId, {
         $push:{users:userId},
     },
     {new:true}
@@ -146,7 +146,7 @@ const addToGroup= asyncHandler(async(req,res)=> {
 const removeFromGroup= asyncHandler(async(req,res)=> {
     const {chatId, userId} =req.body;
 
-    const removed = Chat.findByIdAndUpdate(chatId, {
+    const removed =await Chat.findByIdAndUpdate(chatId, {
         $pull:{users:userId},
     },
     {new:true}
