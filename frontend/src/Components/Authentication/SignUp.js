@@ -101,6 +101,7 @@ const SignUp = () => {
                 status: 'success',
                 duration: 5000,
                 isClosable: true,
+                position: "top"
             });
             localStorage.setItem('user',JSON.stringify(data))
             setLoading(false);

@@ -72,7 +72,7 @@ const allUsers = asyncHandler(async(req,res)=> {
     }: {};
 
     const users = await User.find(keyword).select("-password").find({_id:{$ne :req.user._id}});
-    res.send(users);
+    res.status(201).send(users);
 })
 
 module.exports = { registerUser, authUser, allUsers }
