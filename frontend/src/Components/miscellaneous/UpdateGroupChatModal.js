@@ -1,8 +1,9 @@
 import { ViewIcon } from '@chakra-ui/icons';
-import { Box, Button, FormControl, IconButton, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, useDisclosure, useToast } from '@chakra-ui/react';
+import { Box, Button, FormControl, IconButton, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spinner, useDisclosure, useToast } from '@chakra-ui/react';
 import React, { useState } from 'react'
 import { ChatState } from '../../Context/ChatProvider';
 import UserBadgeItem from '../UserAvatar/UserBadgeItem';
+import UserListItem from '../UserAvatar/UserListItem';
 import axios from 'axios';
 
 const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain }) => {
@@ -20,41 +21,41 @@ const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain }) => {
     const handleRemove = () => {
 
     }
-
-
-    const handleSearch = () => {
-
-    }
-
-
-    const handleRename = async() => {
-        if(!groupChatName) {
+    const handleAddUser = async (newGroupUser) => {
+        if (selectedChat.users.find((u) => u._id === newGroupUser._id)) {
             toast({
-                title: 'Enter Chat Name',
-                status: 'warning',
+                title: 'User Already in Group',
+                status: 'error',
                 duration: 5000,
                 isClosable: true,
                 position: "top"
-              });
+            });
+            return;
+        }
+        if (selectedChat.groupAdmin._id !== user._id) {
+            toast({
+                title: 'Only Admin Can add Users',
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+                position: "top"
+            });
             return;
         }
         try {
-            setRenameLoading(true);
+            setLoading(true);
             const config = {
                 headers: {
-                  "Authorization": `Bearer ${user.token}`,
+                    "Authorization": `Bearer ${user.token}`,
                 },
-              };
-
-              const {data} = await axios.put("/api/chat/rename", {
+            };
+            const { data } = await axios.put(`/api/chat/group-add`, {
                 chatId: selectedChat._id,
-                chatName: groupChatName
-              },
-              config);
-              setSelectedChat(data);
-              setFetchAgain(!fetchAgain);
-              setRenameLoading(false);
-            
+                userId: newGroupUser._id,
+            }, config);
+            setSelectedChat(data);
+            setFetchAgain(!fetchAgain);
+            setLoading(false);
         } catch (error) {
             toast({
                 title: 'Error Occured!',
@@ -63,11 +64,86 @@ const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain }) => {
                 duration: 5000,
                 isClosable: true,
                 position: "top"
-              });
-              setRenameLoading(false);
-              setGroupChatName("");
-        
-            
+            });
+            setLoading(false);
+
+        }
+
+    }
+
+
+    const handleSearch = async (query) => {
+        setSearch(query);
+        if (!query) {
+            return;
+        }
+        try {
+            setLoading(true);
+            const config = {
+                headers: {
+                    "Authorization": `Bearer ${user.token}`,
+                },
+            };
+            const { data } = await axios.get(`/api/user?search=${search}`, config);
+            setLoading(false);
+            setSearchResult(data);
+
+        } catch (error) {
+            toast({
+                title: 'Error Occured!',
+                description: "Failed to Load Search Results",
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+                position: "top"
+            });
+
+        }
+
+    }
+
+
+    const handleRename = async () => {
+        if (!groupChatName) {
+            toast({
+                title: 'Enter Chat Name',
+                status: 'warning',
+                duration: 5000,
+                isClosable: true,
+                position: "top"
+            });
+            return;
+        }
+        try {
+            setRenameLoading(true);
+            const config = {
+                headers: {
+                    "Authorization": `Bearer ${user.token}`,
+                },
+            };
+
+            const { data } = await axios.put("/api/chat/rename", {
+                chatId: selectedChat._id,
+                chatName: groupChatName
+            },
+                config);
+            setSelectedChat(data);
+            setFetchAgain(!fetchAgain);
+            setRenameLoading(false);
+
+        } catch (error) {
+            toast({
+                title: 'Error Occured!',
+                description: error.response.data.message,
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+                position: "top"
+            });
+            setRenameLoading(false);
+            setGroupChatName("");
+
+
         }
 
     }
@@ -115,6 +191,21 @@ const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain }) => {
                                 onChange={(e) => handleSearch(e.target.value)}
                             />
                         </FormControl>
+                        {loading ? <Spinner
+                            mt='4'
+                            thickness='4px'
+                            speed='0.65s'
+                            emptyColor='gray.200'
+                            color='blue.500'
+                            size='lg'
+
+                        /> :
+                            (searchResult?.slice(0, 4)
+                                .map(
+                                    (user) => <UserListItem key={user._id} user={user} handleFunction={() => handleAddUser(user)} />
+                                )
+                            )
+                        }
                     </ModalBody>
 
                     <ModalFooter>
