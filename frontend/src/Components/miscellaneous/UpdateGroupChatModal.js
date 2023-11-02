@@ -3,6 +3,7 @@ import { Box, Button, FormControl, IconButton, Input, Modal, ModalBody, ModalClo
 import React, { useState } from 'react'
 import { ChatState } from '../../Context/ChatProvider';
 import UserBadgeItem from '../UserAvatar/UserBadgeItem';
+import axios from 'axios';
 
 const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain }) => {
 
@@ -26,7 +27,48 @@ const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain }) => {
     }
 
 
-    const handleRename = () => {
+    const handleRename = async() => {
+        if(!groupChatName) {
+            toast({
+                title: 'Enter Chat Name',
+                status: 'warning',
+                duration: 5000,
+                isClosable: true,
+                position: "top"
+              });
+            return;
+        }
+        try {
+            setRenameLoading(true);
+            const config = {
+                headers: {
+                  "Authorization": `Bearer ${user.token}`,
+                },
+              };
+
+              const {data} = await axios.put("/api/chat/rename", {
+                chatId: selectedChat._id,
+                chatName: groupChatName
+              },
+              config);
+              setSelectedChat(data);
+              setFetchAgain(!fetchAgain);
+              setRenameLoading(false);
+            
+        } catch (error) {
+            toast({
+                title: 'Error Occured!',
+                description: error.response.data.message,
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+                position: "top"
+              });
+              setRenameLoading(false);
+              setGroupChatName("");
+        
+            
+        }
 
     }
     return (
