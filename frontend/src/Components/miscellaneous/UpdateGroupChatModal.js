@@ -18,7 +18,36 @@ const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain }) => {
 
     const { selectedChat, setSelectedChat, user } = ChatState();
 
-    const handleRemove = () => {
+    const handleRemove = async (removeUser) => {
+        if (selectedChat.groupAdmin._id !== user._id && removeUser._id == user._id) {
+            toast({
+                title: 'Only Admin Can remove someone',
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+                position: "top"
+            });
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const config = {
+                headers: {
+                    "Authorization": `Bearer ${user.token}`,
+                },
+            };
+            const { data } = await axios.put(`/api/chat/group-remove`, {
+                chatId: selectedChat._id,
+                userId: removeUser._id,
+            }, config);
+            removeUser._id === user._id ? setSelectedChat(): setSelectedChat(data);
+            setFetchAgain(!fetchAgain);
+            setLoading(false);
+            
+        } catch (error) {
+            
+        }
 
     }
     const handleAddUser = async (newGroupUser) => {
