@@ -6,78 +6,79 @@ import { getSender, getSenderFull } from '../config/ChatLogics';
 import ProfileModal from './miscellaneous/ProfileModal';
 import UpdateGroupChatModal from './miscellaneous/UpdateGroupChatModal';
 import axios from 'axios';
+import './styles.css';
+import ScrollableChat from './ScrollableChat';
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
     const [newMessage, setNewMessage] = useState('');
-    const toast= useToast();
+    const toast = useToast();
 
     const { user, selectedChat, setSelectedChat } = ChatState();
 
-    const fetchMessages = async ()=> {
-        if(!selectedChat) return;
+    const fetchMessages = async () => {
+        if (!selectedChat) return;
 
         try {
             const config = {
                 headers: {
-                    Authorization:`Bearer ${user.token}`
+                    Authorization: `Bearer ${user.token}`
                 }
             }
             setLoading(true);
-            const {data} = await axios.get(`/api/message/${selectedChat._id}`, config)
+            const { data } = await axios.get(`/api/message/${selectedChat._id}`, config)
             setMessages(data);
             setLoading(false);
         } catch (error) {
             toast({
                 title: 'Error Occured',
-                description:"Failed to load the Message",
+                description: "Failed to load the Message",
                 status: 'error',
                 duration: 5000,
                 isClosable: true,
                 position: "top"
             });
-            
-            
+
+
         }
     }
-    
 
-    const sendMessage = async(event)=> {
-        if(event.key ==="Enter" && newMessage)
-        {
+
+    const sendMessage = async (event) => {
+        if (event.key === "Enter" && newMessage) {
             try {
                 const config = {
-                    headers : {
-                        "Content-Type":"application/json",
-                        Authorization:`Bearer ${user.token}`,
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${user.token}`,
                     }
                 };
 
                 setNewMessage("");
-                const {data} = await axios.post("/api/message", {
-                    content:newMessage,
+                const { data } = await axios.post("/api/message", {
+                    content: newMessage,
                     chatId: selectedChat._id
                 }, config)
                 setMessages([...messages, data]);
-                
+
             } catch (error) {
                 toast({
                     title: 'Error Occured',
-                    description:"Failed to send the Message",
+                    description: "Failed to send the Message",
                     status: 'error',
                     duration: 5000,
                     isClosable: true,
                     position: "top"
                 });
-                
+
             }
 
         }
 
     }
 
-    const typingHandler = (e)=> {
+    const typingHandler = (e) => {
         setNewMessage(e.target.value);
         console.log(newMessage);
 
@@ -116,7 +117,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                                 <>
                                     {selectedChat.chatName.toUpperCase()}
                                     {
-                                        <UpdateGroupChatModal fetchAgain={fetchAgain} setFetchAgain={setFetchAgain} />
+                                        <UpdateGroupChatModal fetchAgain={fetchAgain} setFetchAgain={setFetchAgain} fetchMessages={fetchMessages} />
                                     }
 
                                 </>
@@ -144,19 +145,19 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
                             />
                         ) : (
-                            <div>
-                                {/* {Messages} */}
+                            <div className='messages'>
+                               <ScrollableChat messages={messages}/>
                             </div>
                         )}
                         <FormControl onKeyDown={sendMessage} isRequired mt={3}>
                             <Input
-                            variant="filled"
-                            bg="#E0E0E0"
-                            placeholder='Enter a Message'
-                            onChange={typingHandler}
-                            value={newMessage}
+                                variant="filled"
+                                bg="#E0E0E0"
+                                placeholder='Enter a Message'
+                                onChange={typingHandler}
+                                value={newMessage}
 
-                            
+
                             />
 
                         </FormControl>
