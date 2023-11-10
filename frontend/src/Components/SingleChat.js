@@ -21,6 +21,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     const toast = useToast();
 
     const { user, selectedChat, setSelectedChat } = ChatState();
+ 
 
     const fetchMessages = async () => {
         if (!selectedChat) return;
@@ -35,6 +36,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             const { data } = await axios.get(`/api/message/${selectedChat._id}`, config)
             setMessages(data);
             setLoading(false);
+            socket.emit('join chat', selectedChat._id);
         } catch (error) {
             toast({
                 title: 'Error Occured',
@@ -48,7 +50,33 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
         }
     }
+    useEffect(() => {
+        socket = io(ENDPOINT)
+        socket.emit("setup", user);
+        socket.on("connection", () => setSocketConnected(true));
 
+    }, []
+    );
+
+    useEffect(() => {
+        fetchMessages();
+        selectedChatCompare = selectedChat;
+    }, [selectedChat]);
+
+    useEffect(()=> {
+        socket.on("message received", (newMessageReceived) => {
+            if(!selectedChatCompare || selectedChatCompare._id !== newMessageReceived.chat._id )
+            {
+                // give notification
+            }
+            else
+            {
+                setMessages([...messages, newMessageReceived]);
+            }
+        })
+    })
+
+   
 
     const sendMessage = async (event) => {
         if (event.key === "Enter" && newMessage) {
@@ -65,6 +93,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     content: newMessage,
                     chatId: selectedChat._id
                 }, config)
+
+                socket.emit('new message', data);
                 setMessages([...messages, data]);
 
             } catch (error) {
@@ -88,18 +118,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         console.log(newMessage);
 
     }
-
-    useEffect(() => {
-        fetchMessages();
-    }, [selectedChat]);
-
-    useEffect(() => {
-        socket = io(ENDPOINT)
-        socket.emit("setup", user);
-        socket.on("connection", () => setSocketConnected(true));
-
-    }, []
-    );
+   
     
     return (
         <>
