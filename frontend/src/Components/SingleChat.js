@@ -18,6 +18,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     const [loading, setLoading] = useState(false);
     const [newMessage, setNewMessage] = useState('');
     const [socketConnected, setSocketConnected] = useState(false);
+    const [typing, setTyping] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
     const toast = useToast();
 
     const { user, selectedChat, setSelectedChat } = ChatState();
@@ -53,7 +55,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     useEffect(() => {
         socket = io(ENDPOINT)
         socket.emit("setup", user);
-        socket.on("connection", () => setSocketConnected(true));
+        socket.on("connected", () => setSocketConnected(true));
+        socket.on("typing", () => setIsTyping(true));
+        socket.on("stop typing", () => setIsTyping(false));
 
     }, []
     );
@@ -80,6 +84,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
     const sendMessage = async (event) => {
         if (event.key === "Enter" && newMessage) {
+            socket.emit('stop typing', selectedChat._id);
             try {
                 const config = {
                     headers: {
@@ -115,7 +120,23 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
     const typingHandler = (e) => {
         setNewMessage(e.target.value);
-        console.log(newMessage);
+        if(!socketConnected) return;
+        if(!typing)
+        {
+            setTyping(true);
+            socket.emit('typing', selectedChat._id);
+        }
+        let lastTypingTime = new Date().getTime();
+        var timeLength= 3000;
+        setTimeout(()=> {
+            var timeNow = new Date().getTime();
+            var timeDiff = timeNow-lastTypingTime;
+            if(timeDiff>= timeLength && typing)
+            {
+                socket.emit('stop typing', selectedChat._id);
+                setTyping(false);
+            }
+        }, timeLength)
 
     }
    
@@ -183,6 +204,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                             </div>
                         )}
                         <FormControl onKeyDown={sendMessage} isRequired mt={3}>
+                            {isTyping?<div>typing...</div>:<></>}
                             <Input
                                 variant="filled"
                                 bg="#E0E0E0"
